@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Copyright (c) 2019 Abex
 All rights reserved.
@@ -34,79 +33,82 @@ from string import Template
 
 templatedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templateplugin")
 
+
 def strip_plugin(str):
 	return re.sub(r"(?i)[ _-]*plugin$", "", str)
 
+
 def reformat(str, replacer):
 	if replacer != to_spaces:
-		str=re.sub(r"[^a-zA-Z0-9_ -]", "", str)
+		str = re.sub(r"[^a-zA-Z0-9_ -]", "", str)
 	if re.match(r".*[ _-]", str):
-		return re.sub(r"(?:^|[ _.-]+)([^ _.-]+)", lambda m:replacer(m.group(1)), str).strip(" -_")
-	return re.sub(r"((?:^.|[A-Z0-9]+)(?:[a-z0-9]+|$))", lambda m:replacer(m.group(1)), str).strip(" -_")
+		return re.sub(r"(?:^|[ _.-]+)([^ _.-]+)", lambda m: replacer(m.group(1)), str).strip(" -_")
+	return re.sub(r"((?:^.|[A-Z0-9]+)(?:[a-z0-9]+|$))", lambda m: replacer(m.group(1)), str).strip(" -_")
+
 
 def to_spaces(seg):
 	return " " + seg.capitalize()
 
+
 def to_camelcase(seg):
 	return seg.capitalize()
+
 
 def to_dashes(seg):
 	return "-" + seg.lower()
 
+
 def to_lowercase(seg):
 	return seg.lower()
+
 
 def strfun(strfun):
 	if isinstance(strfun, str):
 		return strfun
 	return strfun()
 
-subs = OrderedDict([
-	("name", {
-		"ask": True,
-		"desc": "The name your plugin will be shown by in menus",
-		"value": "Foo Bazzer",
-		"strip_plugin": True,
-	}),
+
+subs = OrderedDict([("name", {
+	"ask": True,
+	"desc": "The name your plugin will be shown by in menus",
+	"value": "Foo Bazzer",
+	"strip_plugin": True,
+}),
 	("package", {
-		"ask": True,
-		"desc": "The java package your plugin will be in. Typically a reversed domain name",
-		"value": "com.example.foobazzer",
-		"strip_plugin": True,
-	}),
-	("author", {
-		"ask": True,
-		"desc": "Who wrote/maintains this plugin",
-		"value": "John Doe",
+	"ask": True,
+	"desc": "The java package your plugin will be in. Typically a reversed domain name",
+	"value": "com.example.foobazzer",
+	"strip_plugin": True,
+	}), ("author", {
+	"ask": True,
+	"desc": "Who wrote/maintains this plugin",
+	"value": "John Doe",
 	}),
 	("description", {
-		"ask": True,
-		"desc": "A short string describing the plugin",
-		"value": "Adds a bazzer to the foo",
-	}),
-	("version", {
-		"desc": "The initial version number of the plugin",
-		"value": "1.0-SNAPSHOT",
+	"ask": True,
+	"desc": "A short string describing the plugin",
+	"value": "Adds a bazzer to the foo",
+	}), ("version", {
+	"desc": "The initial version number of the plugin",
+	"value": "1.0-SNAPSHOT",
 	}),
 	("plugin_prefix", {
-		"desc": "The name of the your plugin's main class, without the 'Plugin' suffix",
-		"value": lambda: reformat(subs["name"]["value"], to_camelcase),
-		"strip_plugin": True
+	"desc": "The name of the your plugin's main class, without the 'Plugin' suffix",
+	"value": lambda: reformat(subs["name"]["value"], to_camelcase),
+	"strip_plugin": True
 	}),
 	("artifact_id", {
-		"desc": "The name of the maven artifact",
-		"value": lambda: reformat(subs["name"]["value"], to_dashes),
-	}),
-	("group_id", {
-		"desc": "The group of the maven artifact",
-		"value": lambda: subs["package"]["value"],
+	"desc": "The name of the maven artifact",
+	"value": lambda: reformat(subs["name"]["value"], to_dashes),
+	}), ("group_id", {
+	"desc": "The group of the maven artifact",
+	"value": lambda: subs["package"]["value"],
 	}),
 	("plugin_config_group", {
-		"desc": "The prefix used to store config keys",
-		"value": lambda: reformat(subs["name"]["value"], to_lowercase),
-		"strip_plugin": True
-	})
-])
+	"desc": "The prefix used to store config keys",
+	"value": lambda: reformat(subs["name"]["value"], to_lowercase),
+	"strip_plugin": True
+	})])
 
 pwd = os.getcwd()
 pwdIsEmpty = len(os.listdir(pwd)) == 0
@@ -114,10 +116,10 @@ if pwdIsEmpty:
 	subs["name"]["value"] = strip_plugin(reformat(os.path.basename(pwd), to_spaces))
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--noninteractive", dest = "noninteractive", action='store_true')
-parser.add_argument("--output_directory", dest = "output_directory")
+parser.add_argument("--noninteractive", dest="noninteractive", action='store_true')
+parser.add_argument("--output_directory", dest="output_directory")
 for key, var in subs.items():
-	parser.add_argument("--" + key, dest = key, help = var["desc"])
+	parser.add_argument("--" + key, dest=key, help=var["desc"])
 args = vars(parser.parse_args())
 
 noninteractive = args["noninteractive"]
@@ -153,6 +155,7 @@ while True:
 	print("")
 	for key, var in subs.items():
 		print("{} = \"{}\"".format(key, strfun(var["value"])))
+
 	def input_yes():
 		while True:
 			inp = input("Is this ok? [Yn]").lower()
@@ -160,6 +163,7 @@ while True:
 				return True
 			if inp == "n":
 				return False
+
 	if noninteractive or input_yes():
 		break
 
@@ -186,7 +190,7 @@ for root, dir, files in os.walk(templatedir):
 			outfi = Template(outfi).substitute(mappings)
 			outfi = os.path.join(outdir, outfi)
 			os.makedirs(os.path.dirname(outfi), exist_ok=True)
-			with open(infi, "rb") as ifd: # we need binary mode to not do that stupid crlf bullshit on windows
+			with open(infi, "rb") as ifd:  # we need binary mode to not do that stupid crlf bullshit on windows
 				if file.endswith(".jar") or file.startswith("gradlew"):
 					with open(outfi, "wb") as ofd:
 						ofd.write(ifd.read())

@@ -128,7 +128,7 @@ if noninteractive and pwdIsEmpty:
 	subs["name"]["ask"] = False
 
 for key, var in subs.items():
-	if args[key] != None:
+	if args[key] is not None:
 		val = args[key]
 		if "strip_plugin" in var and var["strip_plugin"]:
 			val = strip_plugin(val)
@@ -168,7 +168,7 @@ while True:
 		break
 
 outdir = args["output_directory"]
-if outdir == None:
+if outdir is None:
 	if pwdIsEmpty:
 		outdir = pwd
 	else:
